@@ -1,0 +1,451 @@
+Switch Statement
+================
+* switch statement in any programming languages is to simplify the process of making decisions based on the value of a single   expression. 
+
+* It allows you to choose between multiple possible paths of execution depending on the value of a variable or expression. 
+
+* Switch Statement make the code more readable and easier to manage compared to writing a series of if-else statements.
+
+* Pattern Matching for switch in Java 17 is introduced as a preview feature under JEP 406. 
+
+* It enhances the traditional switch statement by integrating pattern matching, allowing for more expressive and concise code. 
+
+* Before Java17 version we can pass values to switch statement for few types — numeric types, enum types, and String.
+
+* This is a significant evolution in how switch statements can be used, particularly when dealing with different types or complex   conditions.
+
+Before Java17
+=============
+int num = 2;
+String result;
+switch (num) {
+    case 1:
+        result = "one";
+        break;
+    case 2:
+        result = "two";
+        break;
+    default:
+        result = "unknown";
+        break;
+}
+
+Java17 Version
+==============
+int num = 2;
+String result = switch (num) {
+    case 1 -> "one";
+    case 2 -> "two";
+    default -> "unknown";
+};
+
+Multiple Values per Case : 
+=========================
+You can now specify multiple values for a single case label, separated by commas. This makes the code more concise and easier to read.
+
+Before Java 17
+==============
+int num = 2;
+switch (num) {
+    case 1:
+        System.out.println("one");
+        break;
+    case 2:
+    case 3:
+    case 4:
+        System.out.println("two, three, or four");
+        break;
+    default:
+        System.out.println("unknown");
+        break;
+}
+
+Java17
+======
+int num = 2;
+switch (num) {
+    case 1 -> System.out.println("one");
+    case 2, 3, 4 -> System.out.println("two, three, or four");
+    default -> System.out.println("unknown");
+}
+
+
+Pattern Matching
+================
+Sample Code
+===========
+static String formattedObject(Object o) {
+    String formatted = "unknown";
+    if (o instanceof Integer i) {
+        formatted = String.format("int %d", i);
+    } else if (o instanceof Long l) {
+        formatted = String.format("long %d", l);
+    } else if (o instanceof Double d) {
+        formatted = String.format("double %f", d);
+    } else if (o instanceof String s) {
+        formatted = String.format("String %s", s);
+    }
+    return formatted;
+}
+
+* The above code is not optimizable it will have O(n) time complexity, even though the underlying problem is often O(1).
+
+* But switch is a perfect match for pattern matching!. If we extend switch statements and expressions to work on any type, 
+  and allow case labels with patterns rather than just constants, then we could rewrite the above code more clearly and reliably.
+
+Sample Code
+===========
+static String formatObject(Object obj) {
+    return switch (obj) {
+        case Integer i -> String.format("int %d", i);
+        case Long l    -> String.format("long %d", l);
+        case Double d  -> String.format("double %f", d);
+        case String s  -> String.format("String %s", s);
+        default        -> obj.toString();
+    };
+}
+
+* The above code is very optimizable; in this case we are more likely to be able to perform the dispatch in O(1) time.
+
+Returning value from Switch Statement
+=====================================
+Example-1
+=========
+static String formatter(Object obj) {
+    return switch (obj) {
+        case Integer i -> "Integer: " + i;
+        case String s  -> "String: " + s;
+        case null      -> "Null value";
+        default        -> "Unknown type";
+    };
+}
+
+Example-2
+=========
+static String classifyNumber(Number number) {
+    return switch (number) {
+        case Integer i -> i % 2 == 0 ? "Even Integer" : "Odd Integer";
+        case Double d  -> d > 0 ? "Positive Double" : "Non-positive Double";
+        default        -> "Unknown Number";
+    };
+}
+
+Example-3
+=========
+static String numberSign(Number number) {
+    return switch (number) {
+        case Integer i && i > 0 -> "Positive Integer";
+        case Integer i && i == 0 -> "Zero";
+        case Integer i && i < 0 -> "Negative Integer";
+        case Double d && d > 0 -> "Positive Double";
+        default -> "Unknown";
+    };
+}
+
+Pattern Matching and null value
+===============================
+* Traditionally, switch statements and expressions throw NullPointerException if the selector expression evaluates to null, so testing   for null must be done outside of the switch:
+
+Sample Code
+===========
+static void testFooBar(String s) {
+    if (s == null) {
+        System.out.println("oops!");
+        return;
+    }
+    switch (s) {
+        case "Foo", "Bar" -> System.out.println("Great");
+        default           -> System.out.println("Ok");
+    }
+}
+
+
+Java17
+======
+static String describe(Object obj) {
+    return switch (obj) {
+        case null      -> "It's null!";
+        case Integer i -> "An Integer";
+        case String s  -> "A String";
+        default        -> "Something else";
+    };
+}
+
+
+Guard Patterns
+==============
+* You can now add guard clauses to case labels using the -> symbol, followed by a boolean expression. If the expression evaluates to   true, the code associated with that case label will be executed.
+
+Syntax
+=======
+switch (expression) {
+    case pattern when guard -> code;
+    ...
+}
+
+Guarded patterns can be used with various types of patterns, including:
+
+Type patterns: case String s when s.length() > 5
+Record patterns: case Person p when p.age > 18
+Array patterns: case int[] arr when arr.length > 3
+
+
+Example-1
+=========
+Object obj = "hello";
+
+switch (obj) {
+    case String s when s.length() > 5 -> System.out.println("Long string: " + s);
+    case String s -> System.out.println("Short string: " + s);
+    default -> System.out.println("Not a string");
+}
+
+Example-2
+=========
+Person person = new Person("John", 25);
+
+switch (person) {
+    case Person p when p.age > 18 -> System.out.println("Adult: " + p.name);
+    case Person p -> System.out.println("Minor: " + p.name);
+    default -> System.out.println("Not a person");
+}
+
+Example-3
+=========
+int num = 2;
+switch (num) {
+    case 1 -> System.out.println("one");
+    case 2 -> {
+        if (someCondition()) {
+            System.out.println("two (with condition)");
+        } else {
+            System.out.println("two (without condition)");
+        }
+    }
+    default -> System.out.println("unknown");
+}
+
+Sealed Classes
+==============
+* Sealed classes, introduced in Java 17 under JEP 409, provide a way to control which classes or interfaces can extend or implement a   particular class or interface. 
+
+* This feature allows developers to define a restricted class hierarchy, making it easier to manage and reason about inheritance in   large or complex codebases.
+
+* To make a class or interface sealed, you use the sealed modifier followed by a permits clause that lists the classes allowed to   extend it.
+
+  Example
+  =======
+  public sealed class Shape permits Circle, Rectangle, Triangle {
+    // class body
+  }
+
+* Only the classes or interfaces listed in the permits clause can extend or implement the sealed class or interface. These subclasses   can themselves be either final, non-sealed, or sealed.
+
+  final Subclass: No other classes can extend this subclass.
+
+  Example 
+  =======
+  public final class Circle extends Shape {
+    // class body
+  }
+
+  sealed Subclass: The subclass can further restrict its own hierarchy.
+
+  Example
+  =======
+  public sealed class Polygon extends Shape permits Square, Pentagon {
+    // class body
+  }
+
+  non-sealed Subclass: This subclass is open to further extension, breaking the sealing.
+
+
+  Example
+  =======
+  public non-sealed class Rectangle extends Shape {
+    // class body
+  }
+
+Example
+=======
+public abstract sealed class PaymentMethod permits CreditCard, BankTransfer, OnlineWallet {
+    public abstract void processPayment(Payment payment);
+}
+
+public final class CreditCard extends PaymentMethod {
+    @Override
+    public void processPayment(Payment payment) {
+        // Process credit card payment
+    }
+}
+
+public final class BankTransfer extends PaymentMethod {
+    @Override
+    public void processPayment(Payment payment) {
+        // Process bank transfer payment
+    }
+}
+
+public final class OnlineWallet extends PaymentMethod {
+    @Override
+    public void processPayment(Payment payment) {
+        // Process online wallet payment
+    }
+}
+
+Advantage
+=========
+1.Type Safety: By using sealed classes, you can ensure that only the permitted subclasses of PaymentMethod can be used, preventing                  unexpected payment methods from being added.
+
+2.Exhaustive Pattern Matching: With sealed classes, you can use exhaustive pattern matching to handle all possible payment methods in                                a single switch statement or pattern matching expression.
+
+public void handlePayment(PaymentMethod paymentMethod) {
+    switch (paymentMethod) {
+        case CreditCard creditCard -> creditCard.processPayment(payment);
+        case BankTransfer bankTransfer -> bankTransfer.processPayment(payment);
+        case OnlineWallet onlineWallet -> onlineWallet.processPayment(payment);
+    }
+}
+
+3.Improved Code Readability: Sealed classes make the code more expressive and easier to understand, as the compiler ensures that all possible payment methods are handled.
+
+Pseudorandom Number Generators
+==============================
+* In Java 17, the Pseudorandom Number Generator (PRNG) API was enhanced with several new features and improvements as part of JEP 356:   Enhanced Pseudorandom Number Generators. 
+
+* This enhancement provides more flexibility and control over random number generation, improving the usability and performance of     PRNGs in Java.
+
+* A new interface, RandomGenerator, was introduced to provide a common API for all random number generators. 
+
+* This interface abstracts the core methods for generating random values, making it easier to use different PRNG implementations      interchangeably.
+   
+    int nextInt()
+    long nextLong()
+    double nextDouble()
+    boolean nextBoolean()
+    void nextBytes(byte[] bytes)
+
+* Java 17 introduced several new PRNG algorithms, each with different characteristics suited for various use cases:
+   L32X64MixRandom: A 64-bit LCG combined with an Xoroshiro 64/32 generator.
+   L64X128MixRandom: A 128-bit LCG combined with an Xoroshiro 128/64 generator.
+   L64X256MixRandom: A 256-bit LCG combined with an Xoroshiro 256/64 generator.
+   Xoshiro256PlusPlus: A variant of the Xoshiro family, optimized for 64-bit generation.
+   Xoshiro512PlusPlus: A variant of the Xoshiro family, optimized for 128-bit generation.
+   Xoshiro128PlusPlus: A variant of the Xoshiro family, optimized for 32-bit generation.
+
+* A new utility class, RandomGeneratorFactory, was introduced to simplify the creation of various types of random number generators.    It provides methods to obtain instances of PRNGs based on their names or properties.
+
+      RandomGenerator generator = RandomGeneratorFactory.of("Xoshiro256PlusPlus").create();
+
+* The new PRNG algorithms are designed to be faster and more efficient than the default java.util.Random implementation, particularly   for high-performance applications.
+
+* The common RandomGenerator interface makes it easier to switch between different PRNG implementations without changing the rest of    the code.
+
+* The existing java.util.Random class implements the RandomGenerator interface, ensuring backward compatibility with older code. This   means you can continue using Random in the same way, while also having access to the new capabilities.
+
+Example
+=======
+import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
+
+public class PRNGExample {
+    public static void main(String[] args) {
+        // Creating a new RandomGenerator using the Xoshiro256PlusPlus algorithm
+        RandomGenerator rng = RandomGeneratorFactory.of("Xoshiro256PlusPlus").create();
+
+        // Generating some random numbers
+        int randomInt = rng.nextInt();
+        long randomLong = rng.nextLong();
+        double randomDouble = rng.nextDouble();
+
+        System.out.println("Random int: " + randomInt);
+        System.out.println("Random long: " + randomLong);
+        System.out.println("Random double: " + randomDouble);
+
+        // Generating a stream of random integers
+        rng.ints(5).forEach(System.out::println);
+    }
+}
+
+Java Text Blocks
+================
+* Java 15 (and later) introduces a new feature called Text Blocks, which allows you to create multi-line string literals in a more     readable and convenient way.
+
+* Text Blocks are a new way to create string literals in Java that can span multiple lines. They are enclosed in triple quotes """ and   can contain any characters, including newlines, tabs, and spaces.
+
+Syntax
+======
+  String myTextBlock="""......................................""";
+
+Example
+=======
+String html = """
+    <html>
+        <head>
+            <title>My HTML Page</title>
+        </head>
+        <body>
+            <h1>Welcome to my HTML page!</h1>
+        </body>
+    </html>
+""";
+
+String json = """
+    {
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "age": 25,
+        "address": {
+            "street": "123 Main St",
+            "city": "Springfield"
+        }
+    }
+    """;
+
+String sql = """
+    SELECT id, first_name, last_name
+    FROM employees
+    WHERE department = 'Engineering'
+    ORDER BY last_name;
+    """;
+
+
+String myTextBlock = """
+    This is a multi-line string
+    that can span multiple lines
+    and contain any characters
+    """;
+
+KeyFeatures
+===========
+1.Multi-line strings: 
+=====================
+Text Blocks can span multiple lines, making it easier to create long strings that need to be formatted.
+
+2.No escaping: 
+==============
+You don't need to escape newline characters (\n) or other special characters within the Text Block.
+
+3.Preserves whitespace: 
+=======================
+Text Blocks preserve the whitespace and formatting of the original string, making it easier to create formatted strings.
+
+4.No concatenation: 
+===================
+You don't need to concatenate multiple strings using the + operator or String.format() method.
+
+record
+======
+* In Java, the record keyword was introduced in Java 14 as a preview feature and became a standard feature in Java 16. 
+
+* Records provide a concise way to create immutable data classes, automatically handling common boilerplate code like constructors,   equals(), hashCode(), and toString() methods.
+
+* A record is a special kind of class in Java that is primarily used to model plain data. The syntax for defining a record is much   more concise than a traditional class.
+
+   public record Person(String name, int age) {}
+
+* In this example, the Person record class automatically provides:
+
+    A constructor that takes name and age as parameters.
+    name() and age() accessor methods.
+    Implementations of equals(), hashCode(), and toString() methods.
